@@ -1,0 +1,347 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<XMLDB PATH="local/emotions_send/db" VERSION="2026090400"
+       COMMENT="Modelo v5: Learning_Session, Emotion_Record ligado a sesion (no a user/course directo), Reference_Observation, Adaptation_Event/Change/Feedback">
+  <TABLES>
+
+    <TABLE NAME="local_emotions_emotion" COMMENT="Emotion del diagrama">
+      <FIELDS>
+        <FIELD NAME="id"              TYPE="int"  LENGTH="10"  NOTNULL="true" SEQUENCE="true"/>
+        <FIELD NAME="code"            TYPE="char" LENGTH="40"  NOTNULL="true" COMMENT="ENGAGEMENT, CONFUSION, etc."/>
+        <FIELD NAME="name"            TYPE="char" LENGTH="80"  NOTNULL="true" COMMENT="name_emotion"/>
+        <FIELD NAME="taxonomy_source" TYPE="char" LENGTH="60"  NOTNULL="false"/>
+        <FIELD NAME="valence"         TYPE="int"  LENGTH="4"   NOTNULL="false"/>
+        <FIELD NAME="arousal"         TYPE="int"  LENGTH="4"   NOTNULL="false"/>
+      </FIELDS>
+      <KEYS>
+        <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
+      </KEYS>
+      <INDEXES>
+        <INDEX NAME="idx_code" UNIQUE="true" FIELDS="code"/>
+      </INDEXES>
+    </TABLE>
+
+    <TABLE NAME="local_emotions_language" COMMENT="Language del diagrama">
+      <FIELDS>
+        <FIELD NAME="id"             TYPE="int"  LENGTH="10" NOTNULL="true" SEQUENCE="true"/>
+        <FIELD NAME="code_iso_639_1" TYPE="char" LENGTH="10" NOTNULL="true"/>
+        <FIELD NAME="name"           TYPE="char" LENGTH="80" NOTNULL="true" COMMENT="name_language"/>
+      </FIELDS>
+      <KEYS>
+        <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
+      </KEYS>
+      <INDEXES>
+        <INDEX NAME="idx_code" UNIQUE="true" FIELDS="code_iso_639_1"/>
+      </INDEXES>
+    </TABLE>
+
+    <TABLE NAME="local_emotions_level" COMMENT="Academic_Level del diagrama">
+      <FIELDS>
+        <FIELD NAME="id"    TYPE="int"  LENGTH="10"  NOTNULL="true" SEQUENCE="true"/>
+        <FIELD NAME="value" TYPE="char" LENGTH="100" NOTNULL="true"/>
+      </FIELDS>
+      <KEYS>
+        <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
+      </KEYS>
+    </TABLE>
+
+    <TABLE NAME="local_emotions_program" COMMENT="Academic_Program del diagrama">
+      <FIELDS>
+        <FIELD NAME="id"      TYPE="int"  LENGTH="10"  NOTNULL="true" SEQUENCE="true"/>
+        <FIELD NAME="name"    TYPE="char" LENGTH="160" NOTNULL="true" COMMENT="name_academic_program"/>
+        <FIELD NAME="levelid" TYPE="int"  LENGTH="10"  NOTNULL="true"/>
+        <FIELD NAME="faculty" TYPE="char" LENGTH="160" NOTNULL="false"/>
+      </FIELDS>
+      <KEYS>
+        <KEY NAME="primary"    TYPE="primary" FIELDS="id"/>
+        <KEY NAME="fk_levelid" TYPE="foreign" FIELDS="levelid" REFTABLE="local_emotions_level" REFFIELDS="id"/>
+      </KEYS>
+    </TABLE>
+
+    <TABLE NAME="local_emotions_course" COMMENT="Course del diagrama">
+      <FIELDS>
+        <FIELD NAME="id"             TYPE="int"  LENGTH="10"  NOTNULL="true" SEQUENCE="true"/>
+        <FIELD NAME="programid"      TYPE="int"  LENGTH="10"  NOTNULL="true"/>
+        <FIELD NAME="moodlecourseid" TYPE="int"  LENGTH="10"  NOTNULL="false" COMMENT="FK opcional a mdl_course"/>
+        <FIELD NAME="name"           TYPE="char" LENGTH="180" NOTNULL="true" COMMENT="name_course"/>
+      </FIELDS>
+      <KEYS>
+        <KEY NAME="primary"           TYPE="primary" FIELDS="id"/>
+        <KEY NAME="fk_programid"      TYPE="foreign" FIELDS="programid" REFTABLE="local_emotions_program" REFFIELDS="id"/>
+        <KEY NAME="fk_moodlecourseid" TYPE="foreign" FIELDS="moodlecourseid" REFTABLE="course" REFFIELDS="id"/>
+      </KEYS>
+    </TABLE>
+
+    <TABLE NAME="local_emotions_actcontext" COMMENT="Activity_context del diagrama">
+      <FIELDS>
+        <FIELD NAME="id"           TYPE="int"  LENGTH="10"  NOTNULL="true" SEQUENCE="true"/>
+        <FIELD NAME="courseid"     TYPE="int"  LENGTH="10"  NOTNULL="true"/>
+        <FIELD NAME="module"       TYPE="char" LENGTH="100" NOTNULL="false"/>
+        <FIELD NAME="activitytype" TYPE="char" LENGTH="60"  NOTNULL="true" COMMENT="activity_type"/>
+        <FIELD NAME="isassessed"   TYPE="int"  LENGTH="1"   NOTNULL="true" DEFAULT="0" COMMENT="is_assessed"/>
+      </FIELDS>
+      <KEYS>
+        <KEY NAME="primary"     TYPE="primary" FIELDS="id"/>
+        <KEY NAME="fk_courseid" TYPE="foreign" FIELDS="courseid" REFTABLE="local_emotions_course" REFFIELDS="id"/>
+      </KEYS>
+    </TABLE>
+
+    <TABLE NAME="local_emotions_context" COMMENT="Context del diagrama: filas libres por usuario">
+      <FIELDS>
+        <FIELD NAME="id"            TYPE="int"  LENGTH="10"  NOTNULL="true" SEQUENCE="true"/>
+        <FIELD NAME="userid"        TYPE="int"  LENGTH="10"  NOTNULL="true"/>
+        <FIELD NAME="type"          TYPE="char" LENGTH="60"  NOTNULL="true"/>
+        <FIELD NAME="value_context" TYPE="text" NOTNULL="true"/>
+      </FIELDS>
+      <KEYS>
+        <KEY NAME="primary"   TYPE="primary" FIELDS="id"/>
+        <KEY NAME="fk_userid" TYPE="foreign" FIELDS="userid" REFTABLE="user" REFFIELDS="id"/>
+      </KEYS>
+    </TABLE>
+
+    <TABLE NAME="local_emotions_userlang" COMMENT="User_Language del diagrama">
+      <FIELDS>
+        <FIELD NAME="userid"                 TYPE="int" LENGTH="10" NOTNULL="true"/>
+        <FIELD NAME="languageid"             TYPE="int" LENGTH="10" NOTNULL="true"/>
+        <FIELD NAME="is_native"              TYPE="int" LENGTH="1"  NOTNULL="true" DEFAULT="0"/>
+        <FIELD NAME="is_interface_preferred" TYPE="int" LENGTH="1"  NOTNULL="true" DEFAULT="0"/>
+      </FIELDS>
+      <KEYS>
+        <KEY NAME="primary"       TYPE="primary" FIELDS="userid, languageid"/>
+        <KEY NAME="fk_userid"     TYPE="foreign" FIELDS="userid" REFTABLE="user" REFFIELDS="id"/>
+        <KEY NAME="fk_languageid" TYPE="foreign" FIELDS="languageid" REFTABLE="local_emotions_language" REFFIELDS="id"/>
+      </KEYS>
+    </TABLE>
+
+    <TABLE NAME="local_emotions_userprofile" COMMENT="Datos de User que no viven en mdl_user">
+      <FIELDS>
+        <FIELD NAME="id"           TYPE="int"  LENGTH="10" NOTNULL="true" SEQUENCE="true"/>
+        <FIELD NAME="userid"       TYPE="int"  LENGTH="10" NOTNULL="true"/>
+        <FIELD NAME="gender"       TYPE="char" LENGTH="40" NOTNULL="false"/>
+        <FIELD NAME="birthdate"    TYPE="int"  LENGTH="10" NOTNULL="false" DEFAULT="0"/>
+        <FIELD NAME="programid"    TYPE="int"  LENGTH="10" NOTNULL="false" DEFAULT="0"
+               COMMENT="Cache de conveniencia, no es parte formal del diagrama"/>
+        <FIELD NAME="timemodified" TYPE="int"  LENGTH="10" NOTNULL="true" DEFAULT="0"/>
+      </FIELDS>
+      <KEYS>
+        <KEY NAME="primary"      TYPE="primary" FIELDS="id"/>
+        <KEY NAME="fk_userid"    TYPE="foreign-unique" FIELDS="userid" REFTABLE="user" REFFIELDS="id"/>
+        <KEY NAME="fk_programid" TYPE="foreign" FIELDS="programid" REFTABLE="local_emotions_program" REFFIELDS="id"/>
+      </KEYS>
+    </TABLE>
+
+    <TABLE NAME="local_emotions_session" COMMENT="Learning_Session del diagrama">
+      <FIELDS>
+        <FIELD NAME="id"             TYPE="int"  LENGTH="10"  NOTNULL="true" SEQUENCE="true" COMMENT="Id_sesion"/>
+        <FIELD NAME="userid"         TYPE="int"  LENGTH="10"  NOTNULL="true"/>
+        <FIELD NAME="courseid"       TYPE="int"  LENGTH="10"  NOTNULL="true" COMMENT="FK a local_emotions_course"/>
+        <FIELD NAME="startedat"      TYPE="int"  LENGTH="10"  NOTNULL="true" DEFAULT="0" COMMENT="started_at (epoch)"/>
+        <FIELD NAME="endedat"        TYPE="int"  LENGTH="10"  NOTNULL="false" COMMENT="ended_at (epoch)"/>
+        <FIELD NAME="closurereason"  TYPE="char" LENGTH="80"  NOTNULL="false" COMMENT="closure_reason"/>
+        <FIELD NAME="devicetype"     TYPE="char" LENGTH="60"  NOTNULL="false" COMMENT="device_type"/>
+        <FIELD NAME="viewport"       TYPE="char" LENGTH="40"  NOTNULL="false"/>
+        <FIELD NAME="fercaptureenabled" TYPE="int" LENGTH="1" NOTNULL="true" DEFAULT="1" COMMENT="fer_capture_enabled"/>
+      </FIELDS>
+      <KEYS>
+        <KEY NAME="primary"     TYPE="primary" FIELDS="id"/>
+        <KEY NAME="fk_userid"   TYPE="foreign" FIELDS="userid" REFTABLE="user" REFFIELDS="id"/>
+        <KEY NAME="fk_courseid" TYPE="foreign" FIELDS="courseid" REFTABLE="local_emotions_course" REFFIELDS="id"/>
+      </KEYS>
+      <INDEXES>
+        <INDEX NAME="idx_userid_started" UNIQUE="false" FIELDS="userid, startedat"/>
+      </INDEXES>
+    </TABLE>
+
+    <TABLE NAME="local_emotions_model" COMMENT="Emotional_model del diagrama">
+      <FIELDS>
+        <FIELD NAME="id"          TYPE="int"  LENGTH="10" NOTNULL="true" SEQUENCE="true"/>
+        <FIELD NAME="description" TYPE="text" NOTNULL="true" COMMENT="model_description"/>
+      </FIELDS>
+      <KEYS>
+        <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
+      </KEYS>
+    </TABLE>
+
+    <TABLE NAME="local_emotions_modellevel" COMMENT="Norman_Level del diagrama">
+      <FIELDS>
+        <FIELD NAME="id"          TYPE="int"  LENGTH="10" NOTNULL="true" SEQUENCE="true"/>
+        <FIELD NAME="modelid"     TYPE="int"  LENGTH="10" NOTNULL="true"/>
+        <FIELD NAME="code"        TYPE="char" LENGTH="40" NOTNULL="true" COMMENT="Visceral, Behavioral, Reflective"/>
+        <FIELD NAME="description" TYPE="text" NOTNULL="false" COMMENT="description_level"/>
+      </FIELDS>
+      <KEYS>
+        <KEY NAME="primary"    TYPE="primary" FIELDS="id"/>
+        <KEY NAME="fk_modelid" TYPE="foreign" FIELDS="modelid" REFTABLE="local_emotions_model" REFFIELDS="id"/>
+      </KEYS>
+    </TABLE>
+
+    <TABLE NAME="local_emotions_infmodel" COMMENT="Inference_Model del diagrama">
+      <FIELDS>
+        <FIELD NAME="id"                 TYPE="int"    LENGTH="10"  NOTNULL="true" SEQUENCE="true"/>
+        <FIELD NAME="name"               TYPE="char"   LENGTH="120" NOTNULL="true"/>
+        <FIELD NAME="version"            TYPE="char"   LENGTH="30"  NOTNULL="true"/>
+        <FIELD NAME="architecture"       TYPE="char"   LENGTH="120" NOTNULL="false"/>
+        <FIELD NAME="trainingdataset"    TYPE="char"   LENGTH="120" NOTNULL="false" COMMENT="training_dataset"/>
+        <FIELD NAME="macrof1"            TYPE="number" LENGTH="6" DECIMALS="4" NOTNULL="false" COMMENT="macro_f1"/>
+        <FIELD NAME="calibrationmethod"  TYPE="char"   LENGTH="80"  NOTNULL="false" COMMENT="calibration_method"/>
+        <FIELD NAME="perclassf1"         TYPE="text"   NOTNULL="false" COMMENT="per_class_f1, JSON codificado como texto"/>
+        <FIELD NAME="calibrationerror"   TYPE="number" LENGTH="6" DECIMALS="4" NOTNULL="false" COMMENT="calibration_error (ECE)"/>
+      </FIELDS>
+      <KEYS>
+        <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
+      </KEYS>
+    </TABLE>
+
+    <TABLE NAME="local_emotions_rule" COMMENT="Rules del diagrama">
+      <FIELDS>
+        <FIELD NAME="id"              TYPE="int"  LENGTH="10"  NOTNULL="true" SEQUENCE="true"/>
+        <FIELD NAME="modellevelid"    TYPE="int"  LENGTH="10"  NOTNULL="true" COMMENT="Id_norman_level"/>
+        <FIELD NAME="emotionid"       TYPE="int"  LENGTH="10"  NOTNULL="true"/>
+        <FIELD NAME="ui_dimension"    TYPE="char" LENGTH="60"  NOTNULL="true"/>
+        <FIELD NAME="rule_statement"  TYPE="text" NOTNULL="true"/>
+      </FIELDS>
+      <KEYS>
+        <KEY NAME="primary"         TYPE="primary" FIELDS="id"/>
+        <KEY NAME="fk_modellevelid" TYPE="foreign" FIELDS="modellevelid" REFTABLE="local_emotions_modellevel" REFFIELDS="id"/>
+        <KEY NAME="fk_emotionid"    TYPE="foreign" FIELDS="emotionid" REFTABLE="local_emotions_emotion" REFFIELDS="id"/>
+      </KEYS>
+    </TABLE>
+
+    <TABLE NAME="local_emotions_log" COMMENT="Emotion_Record del diagrama: ahora cuelga de Learning_Session, no de user/course directo">
+      <FIELDS>
+        <FIELD NAME="id"                  TYPE="int"    LENGTH="10" NOTNULL="true" SEQUENCE="true" COMMENT="Id_record"/>
+        <FIELD NAME="sessionid"           TYPE="int"    LENGTH="10" NOTNULL="true" COMMENT="Id_session"/>
+        <FIELD NAME="emotionid"           TYPE="int"    LENGTH="10" NOTNULL="true"/>
+        <FIELD NAME="actcontextid"        TYPE="int"    LENGTH="10" NOTNULL="true" COMMENT="Id_activity_context"/>
+        <FIELD NAME="infmodelid"          TYPE="int"    LENGTH="10" NOTNULL="true" COMMENT="Id_inference_model"/>
+        <FIELD NAME="timecreated"         TYPE="int"    LENGTH="10" NOTNULL="true" DEFAULT="0" COMMENT="date (epoch)"/>
+        <FIELD NAME="intensitydaisee"     TYPE="int"    LENGTH="4"  NOTNULL="false" COMMENT="intensity_daisee 0-3"/>
+        <FIELD NAME="confidence"          TYPE="number" LENGTH="6" DECIMALS="4" NOTNULL="true" DEFAULT="0"/>
+        <FIELD NAME="sourcemodel"         TYPE="char"   LENGTH="120" NOTNULL="false" COMMENT="source_model"/>
+        <FIELD NAME="classprobabilities"  TYPE="text"   NOTNULL="false" COMMENT="class_probabilities, JSON codificado como texto"/>
+        <FIELD NAME="entropy"             TYPE="number" LENGTH="6" DECIMALS="4" NOTNULL="false"/>
+      </FIELDS>
+      <KEYS>
+        <KEY NAME="primary"         TYPE="primary" FIELDS="id"/>
+        <KEY NAME="fk_sessionid"    TYPE="foreign" FIELDS="sessionid" REFTABLE="local_emotions_session" REFFIELDS="id"/>
+        <KEY NAME="fk_emotionid"    TYPE="foreign" FIELDS="emotionid" REFTABLE="local_emotions_emotion" REFFIELDS="id"/>
+        <KEY NAME="fk_actcontextid" TYPE="foreign" FIELDS="actcontextid" REFTABLE="local_emotions_actcontext" REFFIELDS="id"/>
+        <KEY NAME="fk_infmodelid"   TYPE="foreign" FIELDS="infmodelid" REFTABLE="local_emotions_infmodel" REFFIELDS="id"/>
+      </KEYS>
+      <INDEXES>
+        <INDEX NAME="idx_session_date" UNIQUE="false" FIELDS="sessionid, timecreated"/>
+      </INDEXES>
+    </TABLE>
+
+    <TABLE NAME="local_emotions_refobs" COMMENT="Reference_Observation del diagrama: ground truth manual (autoinforme o experto)">
+      <FIELDS>
+        <FIELD NAME="id"         TYPE="int"  LENGTH="10" NOTNULL="true" SEQUENCE="true" COMMENT="Id_observation"/>
+        <FIELD NAME="sessionid"  TYPE="int"  LENGTH="10" NOTNULL="true"/>
+        <FIELD NAME="emotionid"  TYPE="int"  LENGTH="10" NOTNULL="true"/>
+        <FIELD NAME="observedat" TYPE="int"  LENGTH="10" NOTNULL="true" DEFAULT="0" COMMENT="observed_at (epoch)"/>
+        <FIELD NAME="method"     TYPE="char" LENGTH="60"  NOTNULL="true"/>
+        <FIELD NAME="observer"   TYPE="char" LENGTH="120" NOTNULL="false"/>
+        <FIELD NAME="intensity"  TYPE="int"  LENGTH="4"   NOTNULL="false"/>
+      </FIELDS>
+      <KEYS>
+        <KEY NAME="primary"      TYPE="primary" FIELDS="id"/>
+        <KEY NAME="fk_sessionid" TYPE="foreign" FIELDS="sessionid" REFTABLE="local_emotions_session" REFFIELDS="id"/>
+        <KEY NAME="fk_emotionid" TYPE="foreign" FIELDS="emotionid" REFTABLE="local_emotions_emotion" REFFIELDS="id"/>
+      </KEYS>
+    </TABLE>
+
+    <TABLE NAME="local_emotions_adaptlog" COMMENT="Adaptation_Event del diagrama">
+      <FIELDS>
+        <FIELD NAME="id"                  TYPE="int"    LENGTH="10" NOTNULL="true" SEQUENCE="true" COMMENT="Id_Event"/>
+        <FIELD NAME="emorecordid"         TYPE="int"    LENGTH="10" NOTNULL="true" COMMENT="Id_emotion_record"/>
+        <FIELD NAME="sessionid"           TYPE="int"    LENGTH="10" NOTNULL="true"/>
+        <FIELD NAME="tokensbefore"        TYPE="text"   NOTNULL="false" COMMENT="tokens_before, JSON como texto"/>
+        <FIELD NAME="tokensafter"         TYPE="text"   NOTNULL="false" COMMENT="tokens_after, JSON como texto"/>
+        <FIELD NAME="timecreated"         TYPE="int"    LENGTH="10" NOTNULL="true" DEFAULT="0" COMMENT="timestamp"/>
+        <FIELD NAME="experimentalcond"    TYPE="char"   LENGTH="60"  NOTNULL="false" COMMENT="experimental_condition"/>
+        <FIELD NAME="decisionstate"       TYPE="char"   LENGTH="60"  NOTNULL="true" COMMENT="decision_state: APPLIED/GATED/SKIPPED/REVERTED"/>
+        <FIELD NAME="gatereason"          TYPE="char"   LENGTH="180" NOTNULL="false" COMMENT="gate_reason"/>
+        <FIELD NAME="sessionmoment"       TYPE="char"   LENGTH="60"  NOTNULL="false" COMMENT="session_moment: INICIAL/MEDIO/FINAL"/>
+        <FIELD NAME="magnitud"            TYPE="number" LENGTH="8" DECIMALS="4" NOTNULL="false"/>
+        <FIELD NAME="revertedat"          TYPE="int"    LENGTH="10" NOTNULL="false" COMMENT="reverted_at (epoch)"/>
+      </FIELDS>
+      <KEYS>
+        <KEY NAME="primary"        TYPE="primary" FIELDS="id"/>
+        <KEY NAME="fk_emorecordid" TYPE="foreign" FIELDS="emorecordid" REFTABLE="local_emotions_log" REFFIELDS="id"/>
+        <KEY NAME="fk_sessionid"   TYPE="foreign" FIELDS="sessionid" REFTABLE="local_emotions_session" REFFIELDS="id"/>
+      </KEYS>
+      <INDEXES>
+        <INDEX NAME="idx_decisionstate" UNIQUE="false" FIELDS="decisionstate"/>
+        <INDEX NAME="idx_timecreated"   UNIQUE="false" FIELDS="timecreated"/>
+      </INDEXES>
+    </TABLE>
+
+    <TABLE NAME="local_emotions_adaptfb" COMMENT="Adaptation_Feedback del diagrama">
+      <FIELDS>
+        <FIELD NAME="id"                  TYPE="int"  LENGTH="10" NOTNULL="true" SEQUENCE="true" COMMENT="Id_feedback"/>
+        <FIELD NAME="adaptlogid"          TYPE="int"  LENGTH="10" NOTNULL="true" COMMENT="Id_log (FK a Adaptation_Event)"/>
+        <FIELD NAME="accepted"            TYPE="int"  LENGTH="1"  NOTNULL="false"/>
+        <FIELD NAME="perceivedusefulness" TYPE="int"  LENGTH="4"  NOTNULL="false" COMMENT="perceived_usefulness, escala 1-5"/>
+        <FIELD NAME="comment"             TYPE="text" NOTNULL="false"/>
+      </FIELDS>
+      <KEYS>
+        <KEY NAME="primary"          TYPE="primary" FIELDS="id"/>
+        <KEY NAME="fk_adaptlogid"    TYPE="foreign-unique" FIELDS="adaptlogid" REFTABLE="local_emotions_adaptlog" REFFIELDS="id"/>
+      </KEYS>
+    </TABLE>
+
+    <TABLE NAME="local_emotions_adaptchange" COMMENT="Adaptation_Change del diagrama: cambios granulares de token por regla dentro de un Adaptation_Event">
+      <FIELDS>
+        <FIELD NAME="id"           TYPE="int"  LENGTH="10"  NOTNULL="true" SEQUENCE="true" COMMENT="Id_adaptatio_change"/>
+        <FIELD NAME="eventid"      TYPE="int"  LENGTH="10"  NOTNULL="true" COMMENT="Id_event"/>
+        <FIELD NAME="ruleid"       TYPE="int"  LENGTH="10"  NOTNULL="true" COMMENT="Id_rule"/>
+        <FIELD NAME="ui_dimension" TYPE="char" LENGTH="60"  NOTNULL="true"/>
+        <FIELD NAME="targettoken"  TYPE="char" LENGTH="120" NOTNULL="true" COMMENT="target_token"/>
+        <FIELD NAME="valuebefore"  TYPE="text" NOTNULL="false" COMMENT="value_before"/>
+        <FIELD NAME="valueafter"   TYPE="text" NOTNULL="false" COMMENT="value_after"/>
+      </FIELDS>
+      <KEYS>
+        <KEY NAME="primary"     TYPE="primary" FIELDS="id"/>
+        <KEY NAME="fk_eventid"  TYPE="foreign" FIELDS="eventid" REFTABLE="local_emotions_adaptlog" REFFIELDS="id"/>
+        <KEY NAME="fk_ruleid"   TYPE="foreign" FIELDS="ruleid" REFTABLE="local_emotions_rule" REFFIELDS="id"/>
+      </KEYS>
+    </TABLE>
+
+    <TABLE NAME="local_emotions_extmap" COMMENT="Correspondencia de ids de Moodle con la base externa user_model_v5_1 (almacenamiento 'usermodel'): su esquema no guarda ids de mdl_user ni de mdl_course">
+      <FIELDS>
+        <FIELD NAME="id"          TYPE="int"  LENGTH="10" NOTNULL="true" SEQUENCE="true"/>
+        <FIELD NAME="entity"      TYPE="char" LENGTH="20" NOTNULL="true" COMMENT="user | course"/>
+        <FIELD NAME="moodleid"    TYPE="int"  LENGTH="10" NOTNULL="true" COMMENT="id en mdl_user / mdl_course"/>
+        <FIELD NAME="extid"       TYPE="int"  LENGTH="10" NOTNULL="true" COMMENT="User.id_user / Course.id_course en user_model_v5_1"/>
+        <FIELD NAME="timecreated" TYPE="int"  LENGTH="10" NOTNULL="true" DEFAULT="0"/>
+      </FIELDS>
+      <KEYS>
+        <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
+      </KEYS>
+      <INDEXES>
+        <INDEX NAME="idx_entity_moodleid" UNIQUE="true"  FIELDS="entity, moodleid"/>
+        <INDEX NAME="idx_entity_extid"    UNIQUE="false" FIELDS="entity, extid"/>
+      </INDEXES>
+    </TABLE>
+
+    <TABLE NAME="local_emotions_consent" COMMENT="Consentimiento informado para el registro facial, por usuario y curso">
+      <FIELDS>
+        <FIELD NAME="id"           TYPE="int"  LENGTH="10" NOTNULL="true" SEQUENCE="true"/>
+        <FIELD NAME="userid"       TYPE="int"  LENGTH="10" NOTNULL="true"/>
+        <FIELD NAME="courseid"     TYPE="int"  LENGTH="10" NOTNULL="true" COMMENT="id en mdl_course"/>
+        <FIELD NAME="status"       TYPE="char" LENGTH="10" NOTNULL="true" COMMENT="accepted | declined | revoked"/>
+        <FIELD NAME="version"      TYPE="char" LENGTH="40" NOTNULL="true" COMMENT="Huella del texto del consentimiento que se mostro"/>
+        <FIELD NAME="timecreated"  TYPE="int"  LENGTH="10" NOTNULL="true" DEFAULT="0"/>
+        <FIELD NAME="timemodified" TYPE="int"  LENGTH="10" NOTNULL="true" DEFAULT="0"/>
+      </FIELDS>
+      <KEYS>
+        <KEY NAME="primary"  TYPE="primary" FIELDS="id"/>
+        <KEY NAME="userid"   TYPE="foreign" FIELDS="userid" REFTABLE="user" REFFIELDS="id"/>
+        <KEY NAME="courseid" TYPE="foreign" FIELDS="courseid" REFTABLE="course" REFFIELDS="id"/>
+      </KEYS>
+      <INDEXES>
+        <INDEX NAME="idx_user_course" UNIQUE="true" FIELDS="userid, courseid"/>
+      </INDEXES>
+    </TABLE>
+
+  </TABLES>
+</XMLDB>
